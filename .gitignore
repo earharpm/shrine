@@ -1,0 +1,6 @@
+# Compiled Files
+*.o
+
+# The build directory
+/build/
+
