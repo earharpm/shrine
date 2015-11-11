@@ -1,4 +1,5 @@
 global start
+extern long_mode_start
 
 section .text
 bits 32 ; still in Protected Mode
@@ -12,6 +13,17 @@ start:
 
 	call setup_page_tables
 	call enable_paging
+
+	; Load the 64-bit GDT
+	lgdt [gdt64.pointer]
+
+	; Update Selectors
+	mov ax, gdt64.data
+	mov ss, ax	; Stack Selector
+	mov ds, ax	; Data Selector
+	mov es, ax 	; Extra Selector
+
+	jmp gdt64.code:long_mode_start
 
 	; prints OK to the screen
 	mov dword [0xb8000], 0x2f4b2f4f
@@ -122,6 +134,17 @@ enable_paging:
 
 	ret
 
+section .rodata
+gdt64:
+    dq 0 ; zero entry
+.code: equ $ - gdt64
+    dq (1<<44) | (1<<47) | (1<<41) | (1<<43) | (1<<53) ; code segment
+.data: equ $ - gdt64
+    dq (1<<44) | (1<<47) | (1<<41) ; data segment
+
+.pointer:
+	dw $ - gdt64 -1
+	dq gdt64
 
 section .bss
 align 4096
