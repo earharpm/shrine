@@ -3,7 +3,7 @@ TODO
 Kernel
 ----------------------------------------------------------------------------------
  - [X] Boots
- - [ ] Long mode
+ - [X] Long mode
  - [ ] Connects to <LANG>
 
 OS
