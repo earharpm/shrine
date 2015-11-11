@@ -4,3 +4,5 @@
 # The build directory
 /build/
 
+# Misc
+shrine.sublime-workspace
