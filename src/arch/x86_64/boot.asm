@@ -10,6 +10,9 @@ start:
 	call test_cpuid
 	call test_long_mode
 
+	call setup_page_tables
+	call enable_paging
+
 	; prints OK to the screen
 	mov dword [0xb8000], 0x2f4b2f4f
 	hlt
@@ -67,7 +70,69 @@ test_long_mode:
     jmp error
 
 
+setup_page_tables:
+	; Map the first P4 entry to P3
+	mov eax, p3_table
+	or eax, 0b11 ; present + writable
+	mov [p4_table], eax
+
+	; Map the first P3 entry to P2
+	mov eax, p2_table
+	or eax, 0b11 ; present + writable
+	mov [p3_table], eax
+
+	; Map each P2 entry to a 2MiB page
+	mov ecx, 0
+
+.map_p2_table:
+	; Map the /ecx/-th P2 entry to a huge page (2MiB)
+	mov eax, 0x200000	; 2MiB
+	mul ecx
+	or eax, 0b10000011	; present + writable + huge
+	mov [p2_table + ecx * 8], eax ; map ecx-tf entry
+
+	; Because looping in asm....
+	inc ecx
+	cmp ecx, 512
+	jne .map_p2_table
+
+	ret
+
+enable_paging:
+	; Load P4 to cr3 register (cpu access to the P4 table)
+	mov eax, p4_table
+	mov cr3, eax
+
+	; enable PAE-flag in cr4 (Physical Address Extension)
+	mov eax, cr4
+	or eax, 1 << 5
+	mov cr4, eax
+
+	; set the long mode bit in the EFER SMR (model specific register)
+	mov ecx, 0xC0000080
+	rdmsr
+	or eax, 1 << 8
+	wrmsr
+
+	; enable paging in the cr0 register
+	mov eax, cr0
+	or eax, 1 << 31
+	or eax, 1 << 16
+	mov cr0, eax
+
+	ret
+
+
 section .bss
+align 4096
+p4_table: 		; Page-Map L4 Table (PLM4)
+	resb 4096
+p3_table:		; Page-Directory Pointer Table (PDP)
+	resb 4096
+p2_table:		; Page-Directory Table (PD)
+	resb 4096
+p1_table:		; Page Table (PT)
+	resb 4096
 stack_bottom:
 	resb 64
 stack_top
