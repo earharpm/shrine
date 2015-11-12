@@ -1,9 +1,9 @@
 arch ?= x86_64
 target ?= $(arch)-unknown-linux-gnu
 kernel := build/kernel-$(arch).bin
-shrine := target/$(target)/debug/libshrine.a
 iso := build/os-$(arch).iso
 
+shrine := target/$(target)/debug/libshrine.a
 linker_script := src/arch/$(arch)/linker.ld
 grub_cfg := src/arch/$(arch)/grub.cfg
 assembly_source_files := $(wildcard src/arch/$(arch)/*.asm)
@@ -15,6 +15,7 @@ assembly_object_files := $(patsubst src/arch/$(arch)/%.asm, \
 all: $(kernel)
 
 clean:
+	@cargo clean
 	@rm -r build
 
 run: $(iso)
@@ -29,11 +30,11 @@ $(iso): $(kernel) $(grub_cfg)
 	@grub-mkrescue -d /usr/lib/grub/i386-pc -o $(iso) build/isofiles 2> /dev/null
 	@rm -r build/isofiles
 
-$(kernel): $(assembly_object_files) $(linker_script)
-	@ld -n -T $(linker_script) -o $(kernel) $(assembly_object_files) $(shrine)
+$(kernel): cargo $(shrine) $(assembly_object_files) $(linker_script)
+	@ld -n --gc-sections -T $(linker_script) -o $(kernel) $(assembly_object_files) $(shrine)
 
 cargo:
-	@cargo build --target $(target)
+	@cargo rustc --target $(target) -- -Z no-landing-pads
 
 # compile assembly files
 build/arch/$(arch)/%.o: src/arch/$(arch)/%.asm
