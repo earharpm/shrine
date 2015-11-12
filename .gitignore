@@ -1,8 +1,10 @@
 # Compiled Files
 *.o
 
-# The build directory
+# The build directories
 /build/
+/target/
 
 # Misc
 shrine.sublime-workspace
+Cargo.lock

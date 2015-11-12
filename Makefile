@@ -1,5 +1,7 @@
 arch ?= x86_64
+target ?= $(arch)-unknown-linux-gnu
 kernel := build/kernel-$(arch).bin
+shrine := target/$(target)/debug/libshrine.a
 iso := build/os-$(arch).iso
 
 linker_script := src/arch/$(arch)/linker.ld
@@ -28,7 +30,10 @@ $(iso): $(kernel) $(grub_cfg)
 	@rm -r build/isofiles
 
 $(kernel): $(assembly_object_files) $(linker_script)
-	@ld -n -T $(linker_script) -o $(kernel) $(assembly_object_files)
+	@ld -n -T $(linker_script) -o $(kernel) $(assembly_object_files) $(shrine)
+
+cargo:
+	@cargo build --target $(target)
 
 # compile assembly files
 build/arch/$(arch)/%.o: src/arch/$(arch)/%.asm

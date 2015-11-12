@@ -1,0 +1,8 @@
+[package]
+name = "shrine"
+version = "0.1.0"
+authors = ["Paul Earhart <earhart.paul@gmail.com>", "Adam Seitz <adamjseitz@gmail.com>"]
+
+[lib]
+crate-type = ["staticlib"]
+
