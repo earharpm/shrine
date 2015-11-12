@@ -25,7 +25,10 @@ start:
 
 	jmp gdt64.code:long_mode_start
 
-	; prints OK to the screen
+	; Shouldn't get here. Now using 64bit instructions
+	;	See long_mode_init.asm
+
+	; prints OK in white on green then halts
 	mov dword [0xb8000], 0x2f4b2f4f
 	hlt
 
@@ -95,7 +98,6 @@ setup_page_tables:
 
 	; Map each P2 entry to a 2MiB page
 	mov ecx, 0
-
 .map_p2_table:
 	; Map the /ecx/-th P2 entry to a huge page (2MiB)
 	mov eax, 0x200000	; 2MiB
@@ -145,6 +147,7 @@ gdt64:
 .pointer:
 	dw $ - gdt64 -1
 	dq gdt64
+
 
 section .bss
 align 4096
